@@ -1,0 +1,46 @@
+<html>
+    <script src="dist/gpu-browser.min.js"></script>
+    <script>
+
+        function fSpeed(f, comment, count) {
+            if (!count) count = 1000;
+            let t = performance.now();
+            for (let i = 0; i < count; i++) f();
+            console.log(comment + ": " + (performance.now() - t));
+        }
+
+        function sortArr() {
+            let arr = [];
+            for (let i = 0; i < 1000; i++) arr[i] = i % 70;
+            arr.sort();
+        }
+
+        const gpu = new GPU();
+        const cpu = new GPU({mode: "cpu"});
+
+        function fKernel() {
+            let sum = 0;
+            for (let i = 0; i < 100; i++) { sum = sum + i + this.thread.x * this.thread.y; }
+            return sum;
+        }
+
+        const kernel = gpu.createKernel(fKernel).setOutput([200, 200]);
+
+        const kernelCpu = cpu.createKernel(fKernel).setOutput([200, 200]);
+        
+        fSpeed(sortArr, "sortArr");
+
+        fSpeed(kernel, "kernel with GPU", 10);
+        
+        fSpeed(kernelCpu, "kernel with CPU", 10);
+
+        kernel.destroy(); kernelCpu.destroy();
+        //gpu.destroy(); cpu.destroy();
+
+    </script>
+<body>
+
+<h2>GPU examples</h2>
+
+</body>
+</html>
